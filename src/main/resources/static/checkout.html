@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelo - Finalizar Compra</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/estilos.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container my-5">
+        <div class="row g-5">
+            <div class="col-md-7">
+                <h4 class="mb-4 fw-bold text-dark">📦 Datos de Envío y Facturación</h4>
+                <form id="form-despacho-checkout">
+                    
+                    <div class="p-4 border rounded bg-white shadow-sm mb-4">
+                        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">👤 Información del Comprador</h6>
+                        <div class="mb-3">
+                            <label for="checkout-nombre" class="form-label small fw-bold">Nombre Completo:</label>
+                            <input type="text" class="form-control" id="checkout-nombre" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        
+                        <div class="mb-3 d-none" id="contenedor-correo-invitado">
+                            <label for="checkout-correo" class="form-label small fw-bold text-danger">Correo de Invitado (Obligatorio):</label>
+                            <input type="email" class="form-control border-danger mb-2" id="checkout-correo" placeholder="juan@correo.com">
+                            
+                            <div class="p-2 bg-light border border-secondary border-opacity-25 rounded d-flex align-items-center justify-content-between">
+                                <span class="small text-muted">¿Ya tienes una cuenta Pixelo?</span>
+                                <div>
+                                    <a href="login.html" class="btn btn-sm btn-outline-primary fw-bold">Iniciar sesión</a>
+                                </div>
+                            </div>
+                            <div class="text-end mt-1">
+                                <small class="text-muted" style="font-size: 0.75rem;">Inicia sesión para acumular puntos Pixelo Club con esta compra.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border rounded bg-white shadow-sm">
+                        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">🏠 Dirección de Despacho</h6>
+                        <div class="mb-3">
+                            <label for="checkout-direccion" class="form-label small fw-bold">Calle, Número y Departamento:</label>
+                            <input type="text" class="form-control" id="checkout-direccion" placeholder="Av. Pajaritos 1234, Depto 501" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="checkout-comuna" class="form-label small fw-bold">Comuna:</label>
+                                <input type="text" class="form-control" id="checkout-comuna" placeholder="Maipú" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="checkout-region" class="form-label small fw-bold">Región:</label>
+                                <input type="text" class="form-control" id="checkout-region" placeholder="Metropolitana" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-5">
+                <h4 class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="fw-bold text-dark">🛒 Tu Pedido</span>
+                    <span class="badge bg-secondary rounded-pill" id="checkout-badge-cantidad">0</span>
+                </h4>
+                
+                <div class="p-4 border rounded bg-white shadow-sm">
+                    <ul class="list-group list-group-flush mb-3" id="checkout-lista-productos"></ul>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
+                        <span class="fw-bold fs-5 text-dark">Total a Pagar:</span>
+                        <span class="fw-bold text-primary fs-3" id="checkout-total-monto">$0</span>
+                    </div>
+
+                    <button type="button" class="btn btn-success w-100 py-2 fw-bold fs-5 shadow-sm" id="btn-confirmar-despacho-pago" onclick="ejecutarPagoSimuladoConDespacho()">
+                        💳 Proceder al Pago
+                    </button>
+                    <a href="tienda.html" class="btn btn-link w-100 btn-sm text-muted mt-2 text-decoration-none">← Volver a la Tienda</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth-nav.js"></script>
+    <script src="js/pedidos.js"></script>
+  </body>
+</html>

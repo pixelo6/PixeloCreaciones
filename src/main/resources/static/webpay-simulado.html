@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelo - Transbank Webpay Simulador</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+  </head>
+  <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
+    <div class="card p-5 shadow text-center" style="max-width: 500px; width: 100%;">
+        <img src="img/pixelo-logo.PNG" class="mb-4 mx-auto d-block" style="max-width: 120px;" alt="Pixelo">
+        <h4 class="fw-bold mb-3">Pasarela de Pago Simulada</h4>
+        <p class="text-muted small mb-4">Entorno de prueba. Elige el resultado de la transacción bancaria para retornar al comercio.</p>
+        <div class="d-grid gap-3">
+            <button class="btn btn-success btn-lg fw-bold py-3" onclick="despacharResultadoPago(true)">✔ Aprobar Compra</button>
+            <button class="btn btn-danger btn-lg fw-bold py-3" onclick="despacharResultadoPago(false)">❌ Compra Rechazada</button>
+        </div>
+    </div>
+    <script>
+        function despacharResultadoPago(aprobado) {
+            if (window.opener && !window.opener.closed) {
+                window.opener.finalizarPagoGlobal(aprobado);
+            } else {
+                alert("La ventana principal de la tienda fue cerrada. No se pudo enviar el resultado.");
+            }
+            window.close();
+        }
+    </script>
+  </body>
+</html>

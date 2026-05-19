@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelo - Registro</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/estilos.css" />
+  </head>
+  <body>
+    <div class="container">
+    <div class="row">
+        <div class="col-12">
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="img/logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse-main" aria-controls="navbar-collapse-main" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbar-collapse-main">
+                        <ul class="navbar-nav mb-2 mb-lg-0">
+                            <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="tienda.html">Tienda</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown-noticias" role="button" data-bs-toggle="dropdown" aria-expanded="false">Noticias</a>
+                                <ul class="dropdown-menu" aria-labelledby="navbar-dropdown-noticias">
+                                    <li><a class="dropdown-item" href="#">Acción</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <form class="d-flex ms-auto me-3">
+                            <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Search" />
+                            <button class="btn btn-primary" type="submit">Buscar</button>
+                        </form>
+                        <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                            <li class="nav-item me-3">
+                                <button class="btn btn-outline-primary position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#canvasCarro" aria-controls="canvasCarro">
+                                    🛒 Carro
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="contador-carro-badge">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown-cuenta" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="img/ico/avatar.png" alt="User Icon" width="30" height="30" class="d-inline-block align-text-top me-2">
+                                    <span id="nav-nombre-usuario">Cuenta</span>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbar-dropdown-cuenta">
+                                    <li id="nav-link-login"><a class="dropdown-item" href="login.html">Iniciar sesión</a></li>
+                                    <li id="nav-link-registro"><a class="dropdown-item active" href="registro.html" aria-current="page">Registrarse</a></li>
+                                    <li id="nav-link-micuenta" class="d-none"><a class="dropdown-item" href="perfil.html">Mi cuenta</a></li>
+                                    <li id="nav-link-logout" class="d-none"><a class="dropdown-item text-danger" href="#" id="btn-cerrar-sesion">Cerrar Sesión</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="mt-5 d-flex flex-column align-items-center">
+                <div class="card p-4 shadow-sm" style="width: 100%; max-width: 500px;">
+                    <h2 class="mb-4 text-center fw-bold">Crear Cuenta</h2>
+                    <form id="formulario-registro">
+                        <div class="mb-3">
+                            <label for="reg-nombre" class="form-label fw-bold">Nombre de Usuario:</label>
+                            <input type="text" class="form-control" id="reg-nombre" required placeholder="Ej: Oscar123">
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg-correo" class="form-label fw-bold">Correo Electrónico:</label>
+                            <input type="email" class="form-control" id="reg-correo" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-contrasena" class="form-label fw-bold">Contraseña:</label>
+                            <input type="password" class="form-control" id="reg-contrasena" required placeholder="Mínimo 6 caracteres">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Registrarme</button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="canvasCarro" aria-labelledby="canvasCarroLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="canvasCarroLabel">Tu Carro de Compras</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            <div id="carro-items-lista" class="flex-grow-1 overflow-y-auto mb-3"></div>
+            <div class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <span class="fw-bold fs-5">Total de la Compra:</span>
+                    <span class="fw-bold text-primary fs-3" id="carro-precio-total">$0.00</span>
+                </div>
+                <button class="btn btn-success w-100 mb-2 py-2 fw-bold" id="btn-completar-pedido" onclick="redirigirAlCheckout()">Proceder al Pago</button>
+                <button class="btn btn-outline-secondary w-100 btn-sm" onclick="ejecutarVaciadoCarro()">Vaciar Carro</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth-nav.js"></script>
+    <script src="js/registro.js"></script>
+    <script src="js/pedidos.js"></script>
+  </body>
+</html>

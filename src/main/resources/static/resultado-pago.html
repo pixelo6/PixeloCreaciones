@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelo - Estado de la Transacción</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="img/logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse-main" aria-controls="navbar-collapse-main" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar-collapse-main">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link active" href="index.html" aria-current="page">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="tienda.html">Tienda</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown-noticias" role="button" data-bs-toggle="dropdown" aria-expanded="false">Noticias</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbar-dropdown-noticias">
+                            <li><a class="dropdown-item" href="#">Acción</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <form class="d-flex ms-auto me-3">
+                    <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Search" />
+                    <button class="btn btn-primary" type="submit">Buscar</button>
+                </form>
+                <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                    <li class="nav-item me-3">
+                        <button class="btn btn-outline-primary position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#canvasCarro" aria-controls="canvasCarro">
+                            🛒 Carro
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="contador-carro-badge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown-cuenta" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="img/ico/avatar.png" alt="User Icon" width="30" height="30" class="d-inline-block align-text-top me-2">
+                            <span id="nav-nombre-usuario">Cuenta</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbar-dropdown-cuenta">
+                            <li id="nav-link-login"><a class="dropdown-item" href="login.html">Iniciar sesión</a></li>
+                            <li id="nav-link-registro"><a class="dropdown-item" href="registro.html">Registrarse</a></li>
+                            <li id="nav-link-micuenta" class="d-none"><a class="dropdown-item" href="perfil.html">Mi cuenta</a></li>
+                            <li id="nav-link-logout" class="d-none"><a class="dropdown-item text-danger" href="#" id="btn-cerrar-sesion">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 75vh;">
+        <div class="card shadow p-5 border-0 text-center bg-white rounded-4" style="max-width: 550px; width: 100%;" id="tarjeta-resultado">
+            <div class="py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2">Procesando estado de la transacción...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth-nav.js"></script>
+    <script src="js/pedidos.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const parametros = new URLSearchParams(window.location.search);
+            const estado = String(parametros.get('estado')).toLowerCase().trim();
+            const tarjeta = document.getElementById('tarjeta-resultado');
+
+            if (estado === 'exito' || estado === 'approved' || estado === 'true') {
+                tarjeta.innerHTML = `
+                    <div class="mb-4" style="font-size: 5rem;">✅</div>
+                    <h2 class="fw-bold text-success mb-3">¡Compra Autorizada!</h2>
+                    <p class="text-muted mb-4 px-2">
+                        Tu pago fue procesado con éxito por la pasarela bancaria. Tu backend en Spring Boot ha confirmado las existencias en bodega, reduciendo el inventario y generando tu orden de despacho correctamente. ¡Gracias por tu compra!
+                    </p>
+                    <div class="d-grid gap-2 px-3">
+                        <a href="tienda.html" class="btn btn-success btn-lg fw-bold rounded-3 shadow-sm">Seguir Comprando</a>
+                        <a href="perfil.html" class="btn btn-outline-secondary text-decoration-none rounded-3">Ir a Mi Historial</a>
+                    </div>
+                `;
+            } else {
+                tarjeta.innerHTML = `
+                    <div class="mb-4" style="font-size: 5rem;">❌</div>
+                    <h2 class="fw-bold text-danger mb-3">Transacción Cancelada</h2>
+                    <p class="text-muted mb-4 px-2">
+                        La pasarela simulada rechazó la transacción o decidiste abortar la operación bancaria. No se ha efectuado ningún cobro y los artículos siguen reservados dentro de tu carro de compras.
+                    </p>
+                    <div class="d-grid gap-2 px-3">
+                        <a href="checkout.html" class="btn btn-danger btn-lg fw-bold rounded-3 shadow-sm">Reintentar el Pago</a>
+                        <a href="tienda.html" class="btn btn-outline-secondary text-decoration-none rounded-3">Volver al Catálogo</a>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

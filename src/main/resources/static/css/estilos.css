@@ -1,0 +1,10 @@
+.btn-menu-lateral {
+    color: #000000 !important;
+    font-weight: normal;
+}
+
+.btn-menu-lateral.menu-activo {
+    font-weight: bold !important;
+    background-color: #f8f9fa !important;
+    border-color: rgba(0,0,0,.125) !important;
+}
