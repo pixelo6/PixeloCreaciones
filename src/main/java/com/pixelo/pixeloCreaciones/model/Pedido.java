@@ -36,7 +36,6 @@ public class Pedido {
     @JsonIgnoreProperties({"pedidos", "carteraPuntos"}) 
     private Usuario usuario;
 
-    // CORRECCIÓN: Rompemos la recursividad hacia el pedido desde los detalles
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnoreProperties("pedido")
     private List<DetallePedido> detalles;

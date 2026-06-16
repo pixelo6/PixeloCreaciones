@@ -38,15 +38,12 @@ window.guardarCarroStorage = function(carroArray) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Sincroniza el menú de sesión superior
     sincronizarNavbarGlobal();
     
-    // Dibuja el carrito por primera vez al abrir la página
     if (typeof actualizarIndicadoresCarroGlobal === 'function') {
         actualizarIndicadoresCarroGlobal();
     }
     
-    // Controlador para cerrar sesión
     const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
     if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener('click', (e) => {

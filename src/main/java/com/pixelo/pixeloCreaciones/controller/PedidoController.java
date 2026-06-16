@@ -31,7 +31,7 @@ public class PedidoController {
     }
 
     @PostMapping
-    @Transactional // CRÍTICO: Si algo falla (ej. falta stock), todo se revierte
+    @Transactional 
     public Pedido crearPedido(@RequestBody PedidoRequestDTO dto) {
         Pedido pedido = new Pedido();
         pedido.setBuyOrder("PIXELO-" + System.currentTimeMillis());
@@ -48,19 +48,16 @@ public class PedidoController {
         int totalAcumulado = 0;
         List<DetallePedido> detalles = new ArrayList<>();
 
-        // AQUÍ ES DONDE EL PROCESO REALMENTE OCURRE
         for (ItemCarroDTO itemDto : dto.getItems()) {
             Producto producto = productoRepository.findById(itemDto.getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + itemDto.getId()));
 
-            // Descuento de stock
             int nuevoStock = producto.getStock() - itemDto.getCantidad();
             if (nuevoStock < 0) throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
             
             producto.setStock(nuevoStock);
-            productoRepository.save(producto); // Actualiza inventario
+            productoRepository.save(producto); 
 
-            // Creación de detalle
             DetallePedido detalle = new DetallePedido();
             detalle.setPedido(pedido);
             detalle.setProducto(producto);
@@ -74,6 +71,6 @@ public class PedidoController {
         pedido.setTotal(totalAcumulado);
         pedido.setDetalles(detalles);
         
-        return pedidoRepository.save(pedido); // Guarda pedido y sus detalles
+        return pedidoRepository.save(pedido); 
     }
 }

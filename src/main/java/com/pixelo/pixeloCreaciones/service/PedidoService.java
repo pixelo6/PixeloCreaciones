@@ -56,24 +56,20 @@ public class PedidoService {
 
         pedido.setTotal(totalAcumulado);
         pedido.setDetalles(detalles);
-        return pedidoRepository.save(pedido); // Se guarda en BD ANTES del pago
+        return pedidoRepository.save(pedido);
     }
-    
+
     @Transactional
     public Pedido confirmarPagoYDescontarStock(String buyOrder) {
-        // Buscamos el pedido por su código de Transbank
         Pedido pedido = pedidoRepository.findByBuyOrder(buyOrder);
         
-        // Verificamos que exista y que NO esté pagado ya (para evitar descontar el stock dos veces)
         if (pedido != null && !"PAGADO".equals(pedido.getEstado())) {
             pedido.setEstado("PAGADO");
             
-            // Gracias a @Transactional, podemos recorrer los detalles sin que la BD nos desconecte
             for (DetallePedido detalle : pedido.getDetalles()) {
                 Producto producto = detalle.getProducto();
                 int nuevoStock = producto.getStock() - detalle.getCantidad();
                 
-                // Aseguramos que el inventario jamás quede en negativo
                 producto.setStock(Math.max(0, nuevoStock));
                 productoRepository.save(producto);
             }

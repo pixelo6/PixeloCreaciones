@@ -14,13 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     formulario.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Referencias a los campos
         const inputNombre = document.getElementById('reg-nombre');
         const inputCorreo = document.getElementById('reg-correo');
         const inputPass = document.getElementById('reg-contrasena');
         const inputConfirm = document.getElementById('reg-confirmar-contrasena');
 
-        // Verificación de existencia para evitar errores de null
         if (!inputNombre || !inputCorreo || !inputPass || !inputConfirm) {
             alert("Error interno: No se encontraron todos los campos del formulario.");
             return;
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const contrasena = inputPass.value;
         const confirmarContrasena = inputConfirm.value;
 
-        // Validación: las contraseñas deben coincidir
         if (contrasena !== confirmarContrasena) {
             alert('Error: Las contraseñas ingresadas no coinciden.');
             return;

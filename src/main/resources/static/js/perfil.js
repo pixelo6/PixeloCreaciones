@@ -4,8 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function cargarDatosPerfil() {
-    // 🛡️ CANDADO DEFINITIVO: Si no existe el panel de resumen, el script se detiene en silencio.
-    // Esto evita al 100% que aparezcan alertas molestas en index.html o tienda.html
     if (!document.getElementById('modulo-resumen')) {
         return; 
     }
@@ -191,14 +189,11 @@ async function guardarProductoAdmin() {
     const id = document.getElementById('prod-id')?.value;
     const formData = new FormData();
     
-    // Empaquetamos los datos en el formato que Java reconoce a través de @ModelAttribute
     formData.append('nombre', document.getElementById('prod-nombre').value);
     formData.append('precio', document.getElementById('prod-precio').value);
     formData.append('stock', document.getElementById('prod-stock').value);
     formData.append('descripcion', document.getElementById('prod-descripcion').value);
 
-    // Capturamos el campo de la imagen. Si el usuario ingresó un enlace, 
-    // lo adjuntamos como texto para que Java lo asigne directamente al objeto Producto.
     const urlImagen = document.getElementById('prod-imagen')?.value;
     if (urlImagen && urlImagen.trim() !== '') {
         formData.append('imagenUrl', urlImagen);

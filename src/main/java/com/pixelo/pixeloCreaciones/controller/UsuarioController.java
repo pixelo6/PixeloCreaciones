@@ -29,20 +29,17 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // Retorna la lista completa de usuarios registrados en el sistema.
     @GetMapping
     public List<Usuario> listarUsuarios() {
         return usuarioService.listarUsuarios();
     }
 
-    // Retorna la información de un usuario específico según el ID proporcionado en la URL.
     @GetMapping("/{id}")
     public Optional<Usuario> obtenerUsuario(@PathVariable Long id) {
         return usuarioService.obtenerPorId(id);
     }
 
-    // Crea un nuevo usuario recibiendo un JSON crudo y transformándolo mediante ObjectMapper para prevenir errores de formato.
-    @PostMapping(consumes = "application/json")
+   @PostMapping(consumes = "application/json")
     public Usuario crearUsuario(@RequestBody String jsonCrudo) {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -53,7 +50,6 @@ public class UsuarioController {
         }
     }
 
-    // Valida las credenciales de acceso invirtiendo la verificación .equals() para evitar colapsos por datos nulos en la base de datos.
     @PostMapping("/login")
     public ResponseEntity<?> loginUsuario(@RequestBody Map<String, String> credenciales) {
         String correo = credenciales.get("correoElectronico");
@@ -70,9 +66,6 @@ public class UsuarioController {
         }
     }
 
-    // --- FUNCIONES DE RECUPERACIÓN ---
-
-    // Inicia el flujo de recuperación enviando un código temporal al correo indicado.
     @PostMapping("/recuperar-password")
     public ResponseEntity<?> solicitarRecuperacion(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
@@ -84,7 +77,6 @@ public class UsuarioController {
         }
     }
 
-    // NUEVO: Evalúa la autenticidad del código ingresado enviando una contraseña nula intencionalmente, buscando el error específico para dar el pase a la interfaz.
     @PostMapping("/validar-codigo")
     public ResponseEntity<?> validarCodigo(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
@@ -103,7 +95,6 @@ public class UsuarioController {
         }
     }
 
-    // Procesa el cambio final de contraseña comparando el resultado de texto del servicio para asegurar una actualización limpia.
     @PostMapping("/cambiar-password")
     public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
@@ -123,9 +114,6 @@ public class UsuarioController {
         }
     }
 
-    // ------------------------------------------
-
-    // Reemplaza los datos del usuario especificado con la nueva información proporcionada.
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario detalles) {
         try {
@@ -136,7 +124,6 @@ public class UsuarioController {
         }
     }
 
-    // Elimina de forma permanente el registro del usuario indicado.
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarUsuario(@PathVariable Long id) {
         try {

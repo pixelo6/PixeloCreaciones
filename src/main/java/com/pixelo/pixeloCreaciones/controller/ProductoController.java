@@ -50,14 +50,12 @@ public class ProductoController {
             @RequestParam(value = "imagenUrl", required = false) String imagenUrl,
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
         
-        // Instanciamos el producto y mapeamos los campos obligatorios capturados estrictamente.
         Producto producto = new Producto();
         producto.setNombre(nombre);
         producto.setPrecio(precio);
         producto.setStock(stock);
         producto.setDescripcion(descripcion);
 
-        // Verificamos si el formulario envió un archivo físico válido.
         if (imagen != null && !imagen.isEmpty()) {
             try {
                 String directorioUploads = System.getProperty("user.dir") + File.separator + "uploads";
@@ -74,10 +72,8 @@ public class ProductoController {
                 throw new RuntimeException("Error al guardar la imagen: " + e.getMessage());
             }
         } else if (imagenUrl != null && !imagenUrl.trim().isEmpty()) {
-            // Si no hay archivo físico, pero sí un enlace de texto, priorizamos el enlace web.
             producto.setImagenUrl(imagenUrl);
         } else {
-            // Si el formulario no adjuntó archivo ni enlace, aplicamos la imagen por defecto.
             producto.setImagenUrl("img/default.jpg");
         }
         
@@ -95,13 +91,11 @@ public class ProductoController {
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
         
         return productoService.obtenerPorId(id).map(p -> {
-            // Asignamos estrictamente los datos recibidos al producto existente en la base de datos.
             p.setNombre(nombre);
             p.setPrecio(precio);
             p.setStock(stock);
             p.setDescripcion(descripcion);
 
-            // Verificamos si se adjuntó un nuevo archivo físico para sobrescribir el anterior.
             if (imagen != null && !imagen.isEmpty()) {
                 try {
                     String directorioUploads = System.getProperty("user.dir") + File.separator + "uploads";
@@ -118,7 +112,7 @@ public class ProductoController {
                     throw new RuntimeException("Error al actualizar la imagen: " + e.getMessage());
                 }
             } else if (imagenUrl != null && !imagenUrl.trim().isEmpty()) {
-                // Si se provee un nuevo enlace de texto desde el formulario, actualizamos la ruta.
+
                 p.setImagenUrl(imagenUrl);
             }
             

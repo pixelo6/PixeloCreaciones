@@ -291,7 +291,6 @@ async function listarPedidosAdminGlobal() {
         }
 
         pedidos.forEach(p => {
-            // -- FORMATO FECHA --
             let fechaFormateada = '-';
             if (p.fechaCreacion) {
                 const fechaObjeto = new Date(p.fechaCreacion);
@@ -300,7 +299,6 @@ async function listarPedidosAdminGlobal() {
                 });
             }
 
-            // -- TIPO USUARIO Y CORREO (Tus estilos originales) --
             const esRegistrado = p.usuario != null;
             const tipoUsuario = esRegistrado 
                 ? '<span class="badge bg-info text-dark">Registrado</span>' 
@@ -314,7 +312,6 @@ async function listarPedidosAdminGlobal() {
 
             const tr = document.createElement('tr');
             
-            // ORDEN ESTRICTO BASADO EN TUS <th> HTML
             tr.innerHTML = `
                 <td class="fw-bold">#${p.id}</td>
                 

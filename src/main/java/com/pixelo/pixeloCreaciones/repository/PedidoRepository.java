@@ -9,11 +9,8 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     
-    // Usamos @EntityGraph para traer 'detalles' y 'producto' en una sola consulta
-    // Esto previene el LazyInitializationException en EmailService
     @EntityGraph(attributePaths = {"detalles", "detalles.producto"})
     Pedido findByBuyOrder(String buyOrder);
     
-    // Método para buscar pedidos por usuario
     List<Pedido> findByUsuarioId(Long usuarioId);
 }

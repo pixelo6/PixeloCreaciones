@@ -40,13 +40,11 @@ public class EmailService {
         helper.setTo(destinatario);
         helper.setSubject("Confirmación de tu compra Pixelo Creaciones - Orden #" + pedido.getBuyOrder());
 
-        // Asegúrate de que el archivo exista exactamente en src/main/resources/static/img/logo.png
         helper.addInline("logoPixelo", new ClassPathResource("static/img/logo.png"));
 
         StringBuilder htmlContent = new StringBuilder();
         htmlContent.append("<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>");
         
-        // Cabecera con Logo
         htmlContent.append("<div style='text-align: center; margin-bottom: 20px;'>");
         htmlContent.append("<img src='cid:logoPixelo' width='150px' alt='Pixelo Logo'/>");
         htmlContent.append("<h1>¡Gracias por tu compra!</h1>");
@@ -55,7 +53,6 @@ public class EmailService {
         htmlContent.append("<p>Hola, hemos recibido correctamente tu pedido <strong>#").append(pedido.getBuyOrder()).append("</strong>.</p>");
         htmlContent.append("<p>Fecha de compra: ").append(fechaFormateada).append("</p>");
         
-        // Tabla de detalles mejorada
         htmlContent.append("<table style='width: 100%; border-collapse: collapse; margin-top: 20px;'>");
         htmlContent.append("<tr style='background-color: #f8f9fa;'>");
         htmlContent.append("<th style='border: 1px solid #dee2e6; padding: 10px; text-align: left;'>Producto</th>");

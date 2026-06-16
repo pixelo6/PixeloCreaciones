@@ -1,4 +1,4 @@
-package com.pixelo.pixeloCreaciones.controller; // Define la ubicación exacta según la carpeta
+package com.pixelo.pixeloCreaciones.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

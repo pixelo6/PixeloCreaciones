@@ -69,7 +69,6 @@ function añadirArticuloAlCarroDesdeCatalogo(id, nombre, precio, stockMax, image
 
     guardarCarroStorage(carro);
     
-    // IMPORTANTE: Llamar a la función que refresca el offcanvas
     if (typeof actualizarVistaCarro === 'function') {
         actualizarVistaCarro();
     }

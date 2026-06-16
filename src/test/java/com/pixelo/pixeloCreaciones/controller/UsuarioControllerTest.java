@@ -14,7 +14,7 @@ import com.pixelo.pixeloCreaciones.service.UsuarioService;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class) // Usamos Mockito puro, sin levantar el pesado Spring Boot
+@ExtendWith(MockitoExtension.class) 
 public class UsuarioControllerTest {
 
     private MockMvc mockMvc;
@@ -27,7 +27,6 @@ public class UsuarioControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Configuramos MockMvc de forma "aislada" (standalone). ¡Adiós a los errores de contexto!
         mockMvc = MockMvcBuilders.standaloneSetup(usuarioController).build();
     }
 

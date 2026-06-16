@@ -24,7 +24,6 @@ public class TransbankController {
     private final ProductoRepository productoRepository;
     private final PedidoService pedidoService; // variable añadida
 
-    // Constructor actualizado con PedidoService
     public TransbankController(PedidoRepository pedidoRepository, 
                                EmailService emailService, 
                                ProductoRepository productoRepository,
@@ -45,39 +44,33 @@ public class TransbankController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            // 1. SOPORTE HÍBRIDO: Extraemos los datos
             String buyOrder = request.containsKey("buy_order") ? (String) request.get("buy_order") : (String) request.get("buyOrder");
             String sessionId = request.containsKey("session_id") ? (String) request.get("session_id") : (String) request.get("sessionId");
             String returnUrl = request.containsKey("return_url") ? (String) request.get("return_url") : (String) request.get("returnUrl");
             Object amount = request.containsKey("amount") ? request.get("amount") : request.get("amount");
 
-            // ESTRATEGIAS DE RESPALDO INFALIBLES
             if (buyOrder == null || buyOrder.trim().isEmpty()) {
                 buyOrder = "PIX-" + System.currentTimeMillis();
             }
             if (sessionId == null || sessionId.trim().isEmpty()) {
                 sessionId = "SES-" + System.currentTimeMillis();
             }
-            // ¡NUEVO!: Si el JS no envía la URL, la forzamos nosotros hacia nuestro método /commit
             if (returnUrl == null || returnUrl.trim().isEmpty()) {
                 returnUrl = "http://localhost:8080/api/v1/transbank/transaction/commit";
             }
 
-            // 2. REGISTRAR EL PEDIDO EN NUESTRA BD (¡Esto ya vimos que funciona!)
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             PedidoRequestDTO dto = mapper.convertValue(request, PedidoRequestDTO.class);
             
             pedidoService.registrarPedido(dto, buyOrder);
 
-            // 3. CREAR PAQUETE LIMPIO PARA TRANSBANK
             Map<String, Object> transbankRequest = new HashMap<>();
             transbankRequest.put("buy_order", buyOrder);
             transbankRequest.put("session_id", sessionId);
             transbankRequest.put("amount", amount);
             transbankRequest.put("return_url", returnUrl);
 
-            // 4. ENVIAR PETICIÓN A WEBPAY
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(transbankRequest, headers);
             ResponseEntity<Map> resp = new RestTemplate().postForEntity(url, entity, Map.class);
             
@@ -109,7 +102,6 @@ public class TransbankController {
             if (body != null && body.containsKey("buy_order") && "AUTHORIZED".equals(body.get("status"))) {
                 String buyOrder = (String) body.get("buy_order");
                 
-                // Delegamos el descuento de stock y cambio de estado a la capa de servicio blindada
                 Pedido pedidoPagado = pedidoService.confirmarPagoYDescontarStock(buyOrder);
                 
                 if (pedidoPagado != null && "PAGADO".equals(pedidoPagado.getEstado())) {
@@ -124,7 +116,6 @@ public class TransbankController {
                     return ResponseEntity.status(HttpStatus.FOUND).header("Location", "/resultado-pago.html?pago=exito").build();
                 }
             } else {
-                // Pago rechazado por el banco o abortado por el cliente
                 return ResponseEntity.status(HttpStatus.FOUND).header("Location", "/resultado-pago.html?pago=rechazado").build();
             }
         } catch (Exception e) {
