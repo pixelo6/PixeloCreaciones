@@ -24,7 +24,6 @@ async function cargarCatalogoPublicoTienda() {
                 : `<span class="badge bg-success position-absolute top-0 end-0 m-3">Stock: ${p.stock}</span>`;
 
             let rutaImagen = p.imagenUrl || 'img/default.jpg';
-
             const precioFormateado = p.precio ? Math.floor(p.precio).toLocaleString('es-CL') : '0';
 
             col.innerHTML = `
@@ -50,7 +49,7 @@ async function cargarCatalogoPublicoTienda() {
             contenedor.appendChild(col);
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error al cargar el catálogo:', error);
     }
 }
 
@@ -60,7 +59,7 @@ function añadirArticuloAlCarroDesdeCatalogo(id, nombre, precio, stockMax, image
 
     if (indice > -1) {
         if (carro[indice].cantidad >= stockMax) {
-            alert(`Límite alcanzado. Solo quedan ${stockMax} unidades en stock de este artículo.`);
+            alert(`Límite alcanzado. Solo quedan ${stockMax} unidades en stock.`);
             return;
         }
         carro[indice].cantidad += 1;
@@ -69,4 +68,11 @@ function añadirArticuloAlCarroDesdeCatalogo(id, nombre, precio, stockMax, image
     }
 
     guardarCarroStorage(carro);
+    
+    // IMPORTANTE: Llamar a la función que refresca el offcanvas
+    if (typeof actualizarVistaCarro === 'function') {
+        actualizarVistaCarro();
+    }
+    
+    alert('Producto añadido al carro');
 }

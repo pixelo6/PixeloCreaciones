@@ -1,44 +1,44 @@
 package com.pixelo.pixeloCreaciones.model;
 
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "buy_order")
+    private String buyOrder;
+
+    @Column(name = "transbank_transaction_id")
+    private String transbankTransactionId;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaCreacion;
 
-    private Double total;
-    private String estado;
+    @Column(nullable = false)
+    private int total;
 
-    @Column(name = "correo_invitado", nullable = true)
+    private String estado;
+    
+    @Column(name = "correo_invitado")
     private String correoInvitado;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = true)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    @JsonIgnoreProperties({"pedidos", "carteraPuntos"}) 
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
+    // CORRECCIÓN: Rompemos la recursividad hacia el pedido desde los detalles
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("pedido")
     private List<DetallePedido> detalles;
 
     @PrePersist
@@ -47,14 +47,22 @@ public class Pedido {
         if (estado == null) estado = "PENDIENTE";
     }
 
+    // --- Getters y Setters ---
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getBuyOrder() { return buyOrder; }
+    public void setBuyOrder(String buyOrder) { this.buyOrder = buyOrder; }
+
+    public String getTransbankTransactionId() { return transbankTransactionId; }
+    public void setTransbankTransactionId(String transbankTransactionId) { this.transbankTransactionId = transbankTransactionId; }
 
     public Date getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(Date fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
-    public Double getTotal() { return total; }
-    public void setTotal(Double total) { this.total = total; }
+    public int getTotal() { return total; }
+    public void setTotal(int total) { this.total = total; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }

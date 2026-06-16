@@ -1,61 +1,79 @@
 package com.pixelo.pixeloCreaciones.controller;
 
+import com.pixelo.pixeloCreaciones.model.*;
+import com.pixelo.pixeloCreaciones.repository.*;
+import com.pixelo.pixeloCreaciones.dto.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.pixelo.pixeloCreaciones.dto.PedidoRequestDTO;
-import com.pixelo.pixeloCreaciones.model.Pedido;
-import com.pixelo.pixeloCreaciones.repository.PedidoRepository;
-import com.pixelo.pixeloCreaciones.service.PedidoService;
 
 @RestController
 @RequestMapping("/api/pedidos")
 @CrossOrigin(origins = "*")
 public class PedidoController {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
+    private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private PedidoService pedidoService;
+    public PedidoController(PedidoRepository pedidoRepository, 
+                            ProductoRepository productoRepository, 
+                            UsuarioRepository usuarioRepository) {
+        this.pedidoRepository = pedidoRepository;
+        this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @GetMapping
-    public List<Pedido> listarTodos() {
+    public List<Pedido> listarPedidos() {
         return pedidoRepository.findAll();
     }
 
     @PostMapping
-    public ResponseEntity<?> crearPedido(@RequestBody PedidoRequestDTO pedidoRequest) {
-        try {
-            Pedido nuevoPedido = pedidoService.registrarPedido(pedidoRequest);
-            return ResponseEntity.ok(nuevoPedido);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+    @Transactional // CRÍTICO: Si algo falla (ej. falta stock), todo se revierte
+    public Pedido crearPedido(@RequestBody PedidoRequestDTO dto) {
+        Pedido pedido = new Pedido();
+        pedido.setBuyOrder("PIXELO-" + System.currentTimeMillis());
+        pedido.setEstado("PENDIENTE");
 
-    @GetMapping("/usuario/{usuarioId}")
-    public List<Pedido> listarPorUsuario(@PathVariable Long usuarioId) {
-        return pedidoRepository.findByUsuarioId(usuarioId);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obtenerPorId(@PathVariable Long id) {
-        if (id == null) {
-            return ResponseEntity.badRequest().build();
+        if (dto.getUsuarioId() != null) {
+            Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            pedido.setUsuario(usuario);
+        } else {
+            pedido.setCorreoInvitado(dto.getCorreoInvitado());
         }
 
-        return pedidoRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        int totalAcumulado = 0;
+        List<DetallePedido> detalles = new ArrayList<>();
+
+        // AQUÍ ES DONDE EL PROCESO REALMENTE OCURRE
+        for (ItemCarroDTO itemDto : dto.getItems()) {
+            Producto producto = productoRepository.findById(itemDto.getId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + itemDto.getId()));
+
+            // Descuento de stock
+            int nuevoStock = producto.getStock() - itemDto.getCantidad();
+            if (nuevoStock < 0) throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
+            
+            producto.setStock(nuevoStock);
+            productoRepository.save(producto); // Actualiza inventario
+
+            // Creación de detalle
+            DetallePedido detalle = new DetallePedido();
+            detalle.setPedido(pedido);
+            detalle.setProducto(producto);
+            detalle.setCantidad(itemDto.getCantidad());
+            detalle.setPrecioUnitario(producto.getPrecio());
+            
+            detalles.add(detalle);
+            totalAcumulado += (producto.getPrecio() * itemDto.getCantidad());
+        }
+
+        pedido.setTotal(totalAcumulado);
+        pedido.setDetalles(detalles);
+        
+        return pedidoRepository.save(pedido); // Guarda pedido y sus detalles
     }
 }

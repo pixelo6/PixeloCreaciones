@@ -27,8 +27,8 @@ public class DetallePedido {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    private Integer cantidad;
-    private Double precioUnitario;
+    private int cantidad;
+    private int precioUnitario;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -39,9 +39,9 @@ public class DetallePedido {
     public Producto getProducto() { return producto; }
     public void setProducto(Producto producto) { this.producto = producto; }
 
-    public Integer getCantidad() { return cantidad; }
-    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
 
-    public Double getPrecioUnitario() { return precioUnitario; }
-    public void setPrecioUnitario(Double precioUnitario) { this.precioUnitario = precioUnitario; }
+    public int getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(int precioUnitario) { this.precioUnitario = precioUnitario; }
 }

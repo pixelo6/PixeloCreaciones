@@ -146,44 +146,48 @@
                             </div>
 
                             <div id="sub-vista-formulario" class="d-none mt-3">
-                                <h4 class="mb-3" id="titulo-formulario-admin">Formulario de Producto</h4>
+                              <h4 class="mb-3" id="titulo-formulario-admin">Formulario de Producto</h4>
                                 <form id="formulario-producto-admin">
-                                    <div class="mb-3">
-                                        <label for="prod-id" class="form-label fw-bold">ID Producto</label>
-                                        <input type="text" class="form-control bg-light" id="prod-id" readonly />
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="prod-nombre" class="form-label fw-bold">Nombre</label>
-                                        <input type="text" class="form-control" id="prod-nombre" required />
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="prod-precio" class="form-label fw-bold">Precio</label>
-                                        <input type="number" class="form-control" id="prod-precio" required />
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="prod-stock" class="form-label fw-bold">Stock</label>
-                                        <input type="number" class="form-control" id="prod-stock" required />
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="prod-descripcion" class="form-label fw-bold">Descripción</label>
-                                        <textarea class="form-control" id="prod-descripcion" rows="3" required></textarea>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="prod-imagen" class="form-label fw-bold">Imagen del Producto</label>
-                                        <input type="file" class="form-control" id="prod-imagen" accept="image/*" />
-                                    </div>
-                                    
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-success px-4">💾 Guardar</button>
-                                        <button type="button" class="btn btn-secondary" onclick="cerrarFormularioAdmin()">❌ Cancelar</button>
-                                    </div>
-                                </form>
+                                <div class="mb-3">
+                                 <label for="prod-id" class="form-label fw-bold">ID Producto</label>
+                               <input type="text" class="form-control bg-light" id="prod-id" readonly />
+                           </div>
+        
+                         <div class="mb-3">
+                               <label for="prod-nombre" class="form-label fw-bold">Nombre</label>
+                              <input type="text" class="form-control" id="prod-nombre" required />
+                        </div>
+        
+                         <div class="mb-3">
+                               <label for="prod-precio" class="form-label fw-bold">Precio</label>
+                               <input type="number" class="form-control" id="prod-precio" required />
                             </div>
+        
+        <div class="mb-3">
+            <label for="prod-stock" class="form-label fw-bold">Stock</label>
+            <input type="number" class="form-control" id="prod-stock" required />
+        </div>
+        
+        <div class="mb-3">
+            <label for="prod-descripcion" class="form-label fw-bold">Descripción</label>
+            <textarea class="form-control" id="prod-descripcion" rows="3" required></textarea>
+        </div>
+        
+        <div class="mb-3">
+    <label for="prod-imagen" class="form-label fw-bold text-primary">Imagen del Producto (URL)</label>
+    <div class="input-group">
+        <span class="input-group-text bg-white">🔗</span>
+        <input type="text" class="form-control" id="prod-imagen" placeholder="Pega aquí la URL de la imagen (ej: https://pixelo.cl/imagen.png)" required />
+    </div>
+    <div class="form-text small">La imagen será visible una vez confirmada la carga.</div>
+</div>
+            
+                                 <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-success px-4" onclick="guardarProductoAdmin()">💾 Guardar</button>
+                               <button type="button" class="btn btn-secondary" onclick="cerrarFormularioAdmin()">❌ Cancelar</button>
+                                 </div>
+                                 </form>
+                                </div>
                         </div>
 
                         <div id="modulo-usuarios" class="d-none p-4 border rounded bg-light">
@@ -251,10 +255,13 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th>ID Pedido</th>
+                                            <th>Fecha pedido</th>
+                                            <th>Código Orden</th>
+                                            <th>Estado pedido</th>
                                             <th>Tipo Usuario</th>
-                                            <th>Nombre Usuario</th>
                                             <th>Correo</th>
-                                            <th class="text-center">Acciones</th>
+                                            <th>Total</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tabla-admin-pedidos-body"></tbody>

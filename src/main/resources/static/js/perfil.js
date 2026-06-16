@@ -178,7 +178,8 @@ function abrirFormularioAdmin(editar) {
     if (formulario) formulario.classList.remove('d-none');
     
     if (!editar) {
-        const fields = ['prod-id', 'prod-nombre', 'prod-precio', 'prod-stock', 'prod-imagen'];
+        // Limpiamos solo los campos de texto
+        const fields = ['prod-id', 'prod-nombre', 'prod-precio', 'prod-stock', 'prod-imagen', 'prod-descripcion'];
         fields.forEach(f => {
             const el = document.getElementById(f);
             if (el) el.value = '';
@@ -186,32 +187,22 @@ function abrirFormularioAdmin(editar) {
     }
 }
 
-async function abrirFormularioEditarProducto(id) {
-    abrirFormularioAdmin(true);
-    try {
-        const response = await fetch(`/api/productos/${id}`);
-        if (!response.ok) throw new Error('No se encontró el artículo.');
-        const p = await response.json();
-
-        if (document.getElementById('prod-id')) document.getElementById('prod-id').value = p.id;
-        if (document.getElementById('prod-nombre')) document.getElementById('prod-nombre').value = p.nombre;
-        if (document.getElementById('prod-precio')) document.getElementById('prod-precio').value = p.precio;
-        if (document.getElementById('prod-stock')) document.getElementById('prod-stock').value = p.stock;
-        if (document.getElementById('prod-imagen')) document.getElementById('prod-imagen').value = p.urlImagen || '';
-    } catch (error) {
-        alert(error.message);
-        cambiarSubModulo('productos');
-    }
-}
-
 async function guardarProductoAdmin() {
     const id = document.getElementById('prod-id')?.value;
-    const nombre = document.getElementById('prod-nombre')?.value;
-    const precio = document.getElementById('prod-precio')?.value;
-    const stock = document.getElementById('prod-stock')?.value;
-    const urlImagen = document.getElementById('prod-imagen')?.value;
+    const formData = new FormData();
+    
+    // Empaquetamos los datos en el formato que Java reconoce a través de @ModelAttribute
+    formData.append('nombre', document.getElementById('prod-nombre').value);
+    formData.append('precio', document.getElementById('prod-precio').value);
+    formData.append('stock', document.getElementById('prod-stock').value);
+    formData.append('descripcion', document.getElementById('prod-descripcion').value);
 
-    const productoData = { nombre, precio: parseFloat(precio), stock: parseInt(stock), urlImagen };
+    // Capturamos el campo de la imagen. Si el usuario ingresó un enlace, 
+    // lo adjuntamos como texto para que Java lo asigne directamente al objeto Producto.
+    const urlImagen = document.getElementById('prod-imagen')?.value;
+    if (urlImagen && urlImagen.trim() !== '') {
+        formData.append('imagenUrl', urlImagen);
+    }
 
     const url = id ? `/api/productos/${id}` : '/api/productos';
     const method = id ? 'PUT' : 'POST';
@@ -219,16 +210,21 @@ async function guardarProductoAdmin() {
     try {
         const response = await fetch(url, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productoData)
+            body: formData 
         });
 
-        if (!response.ok) throw new Error('No se pudo procesar la persistencia.');
-        alert('Producto procesado correctamente en el catálogo.');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error('Error del servidor: ' + errorText);
+        }
+        
+        alert('Producto procesado correctamente.');
         cambiarSubModulo('productos');
         listarProductosAdmin();
+        
     } catch (error) {
-        alert(error.message);
+        console.error(error);
+        alert('Error: ' + error.message);
     }
 }
 

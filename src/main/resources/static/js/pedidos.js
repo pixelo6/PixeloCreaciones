@@ -22,6 +22,7 @@ function guardarCarroSincronizado(carro) {
     }
     localStorage.setItem('carro', JSON.stringify(carro));
     sessionStorage.setItem('carro', JSON.stringify(carro));
+    window.actualizarIndicadoresCarroGlobal();
 }
 
 window.actualizarIndicadoresCarroGlobal = function() {
@@ -67,19 +68,20 @@ window.eliminarArticuloCarro = function(index) {
     const carro = obtenerCarroSincronizado();
     carro.splice(index, 1);
     guardarCarroSincronizado(carro);
-    window.actualizarIndicadoresCarroGlobal();
 };
 
 window.ejecutarVaciadoCarro = function() {
     if(confirm('¿Estás seguro de vaciar todo tu carro de compras?')) {
         guardarCarroSincronizado([]);
-        window.actualizarIndicadoresCarroGlobal();
     }
 };
 
 function ejecutarViajeAlCheckout() {
     const carro = obtenerCarroSincronizado();
-    if (carro.length === 0) return;
+    if (carro.length === 0) {
+        alert("Tu carro está vacío.");
+        return;
+    }
     window.location.href = 'checkout.html';
 }
 
@@ -178,13 +180,14 @@ window.finalizarPagoGlobal = async function(aprobado) {
         cantidad: item.cantidad
     }));
 
+    let totalAcumulado = carro.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
+
     const pedidoRequestDTO = {
         usuarioId: usuarioLogueado ? usuarioLogueado.id : null,
         correoInvitado: usuarioLogueado ? null : correoInvitado,
-        items: itemsDTO
+        items: itemsDTO,
+        amount: totalAcumulado
     };
-
-    let totalAcumulado = carro.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
 
     try {
         await fetch('/api/pedidos', {
@@ -205,8 +208,13 @@ window.finalizarPagoGlobal = async function(aprobado) {
     } catch (error) {
         console.warn("Aviso de persistencia en el Backend:", error);
     } finally {
+        localStorage.removeItem('carro');
+        sessionStorage.removeItem('carro');
         guardarCarroSincronizado([]);
-        window.location.href = 'resultado-pago.html?estado=exito';
+        
+        setTimeout(() => {
+            window.location.href = 'resultado-pago.html?estado=exito';
+        }, 200);
     }
 };
 
@@ -264,33 +272,64 @@ async function listarPedidosAdminGlobal() {
     const tbody = document.getElementById('tabla-admin-pedidos-body');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary me-2"></div>Sincronizando con Spring Boot...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary me-2"></div>Sincronizando con Spring Boot...</td></tr>';
 
     try {
         const response = await fetch('/api/pedidos');
         if (!response.ok) throw new Error('Error al conectar con la base de datos.');
 
         const pedidos = await response.json();
-        cachePedidosAdmin = pedidos; 
+        
+        if (typeof cachePedidosAdmin !== 'undefined') {
+            cachePedidosAdmin = pedidos; 
+        }
         
         tbody.innerHTML = '';
         if (pedidos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No hay registros de transacciones comerciales.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No hay registros de transacciones comerciales.</td></tr>';
             return;
         }
 
         pedidos.forEach(p => {
-            const tr = document.createElement('tr');
+            // -- FORMATO FECHA --
+            let fechaFormateada = '-';
+            if (p.fechaCreacion) {
+                const fechaObjeto = new Date(p.fechaCreacion);
+                fechaFormateada = fechaObjeto.toLocaleDateString('es-CL', {
+                    year: 'numeric', month: '2-digit', day: 'numeric'
+                });
+            }
+
+            // -- TIPO USUARIO Y CORREO (Tus estilos originales) --
             const esRegistrado = p.usuario != null;
-            const tipoUsuario = esRegistrado ? '<span class="badge bg-info text-dark">Registrado</span>' : '<span class="badge bg-light text-secondary border">Invitado</span>';
-            const nombreUsuario = esRegistrado ? p.usuario.nombreUsuario : '-';
+            const tipoUsuario = esRegistrado 
+                ? '<span class="badge bg-info text-dark">Registrado</span>' 
+                : '<span class="badge bg-light text-secondary border">Invitado</span>';
             const correo = esRegistrado ? p.usuario.correoElectronico : p.correoInvitado;
 
+            // -- COLOR ESTADO --
+            let badgeColor = 'bg-warning text-dark'; 
+            if (p.estado === 'PAGADO') badgeColor = 'bg-success';
+            if (p.estado === 'RECHAZADO') badgeColor = 'bg-danger';
+
+            const tr = document.createElement('tr');
+            
+            // ORDEN ESTRICTO BASADO EN TUS <th> HTML
             tr.innerHTML = `
                 <td class="fw-bold">#${p.id}</td>
+                
+                <td class="fw-semibold">${fechaFormateada}</td>
+                
+                <td class="font-monospace small text-muted">${p.buyOrder || '-'}</td>
+                
+                <td><span class="badge ${badgeColor}">${p.estado}</span></td>
+                
                 <td>${tipoUsuario}</td>
-                <td class="fw-semibold">${nombreUsuario}</td>
+                
                 <td class="text-muted">${correo || '-'}</td>
+                
+                <td class="text-success fw-bold">$${p.total ? p.total.toLocaleString('es-CL') : 0}</td>
+                
                 <td class="text-center">
                     <button class="btn btn-xs btn-primary btn-sm fw-bold px-3" onclick="verDetalleArmadoFichaAdmin(${p.id})">🔍 Ver Detalle</button>
                 </td>
@@ -300,7 +339,7 @@ async function listarPedidosAdminGlobal() {
 
     } catch (error) {
         console.error(error);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">⚠️ Error de conexión con el servidor.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">⚠️ Error de conexión con el servidor.</td></tr>';
     }
 }
 

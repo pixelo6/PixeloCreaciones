@@ -71,11 +71,23 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // El backend ahora envía ?pago=exito o ?pago=rechazado
             const parametros = new URLSearchParams(window.location.search);
-            const estado = String(parametros.get('estado')).toLowerCase().trim();
+            const estadoPago = parametros.get('pago'); 
+            const errorPago = parametros.get('error'); 
             const tarjeta = document.getElementById('tarjeta-resultado');
 
-            if (estado === 'exito' || estado === 'approved' || estado === 'true') {
+            if (estadoPago === 'exito') {
+                // 🧹 MAGIA AQUÍ: Limpiamos el carrito automáticamente
+                localStorage.removeItem('carro');
+                
+                // Actualizamos el contador de la bolita roja en la navbar para que diga 0
+                const contadorCarro = document.getElementById('contador-carro-badge');
+                if (contadorCarro) {
+                    contadorCarro.innerText = '0';
+                }
+
+                // Renderizamos la tarjeta de éxito
                 tarjeta.innerHTML = `
                     <div class="mb-4" style="font-size: 5rem;">✅</div>
                     <h2 class="fw-bold text-success mb-3">¡Compra Autorizada!</h2>
@@ -87,16 +99,29 @@
                         <a href="perfil.html" class="btn btn-outline-secondary text-decoration-none rounded-3">Ir a Mi Historial</a>
                     </div>
                 `;
-            } else {
+            } else if (estadoPago === 'rechazado' || errorPago) {
+                // Renderizamos la tarjeta de rechazo
                 tarjeta.innerHTML = `
                     <div class="mb-4" style="font-size: 5rem;">❌</div>
                     <h2 class="fw-bold text-danger mb-3">Transacción Cancelada</h2>
                     <p class="text-muted mb-4 px-2">
-                        La pasarela simulada rechazó la transacción o decidiste abortar la operación bancaria. No se ha efectuado ningún cobro y los artículos siguen reservados dentro de tu carro de compras.
+                        La pasarela rechazó la transacción, decidiste abortar la operación o hubo un problema de red. No se ha efectuado ningún cobro y los artículos siguen reservados dentro de tu carro de compras.
                     </p>
                     <div class="d-grid gap-2 px-3">
-                        <a href="checkout.html" class="btn btn-danger btn-lg fw-bold rounded-3 shadow-sm">Reintentar el Pago</a>
-                        <a href="tienda.html" class="btn btn-outline-secondary text-decoration-none rounded-3">Volver al Catálogo</a>
+                        <a href="tienda.html" class="btn btn-danger btn-lg fw-bold rounded-3 shadow-sm">Volver a la Tienda</a>
+                        <a href="index.html" class="btn btn-outline-secondary text-decoration-none rounded-3">Volver al Inicio</a>
+                    </div>
+                `;
+            } else {
+                // Por si el cliente entra a la página directamente sin haber pagado
+                tarjeta.innerHTML = `
+                    <div class="mb-4" style="font-size: 5rem;">❓</div>
+                    <h2 class="fw-bold text-warning mb-3">Estado Desconocido</h2>
+                    <p class="text-muted mb-4 px-2">
+                        No hemos podido validar ninguna transacción reciente.
+                    </p>
+                    <div class="d-grid gap-2 px-3">
+                        <a href="tienda.html" class="btn btn-primary btn-lg fw-bold rounded-3 shadow-sm">Ir a la Tienda</a>
                     </div>
                 `;
             }

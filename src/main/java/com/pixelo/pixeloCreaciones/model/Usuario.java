@@ -2,8 +2,9 @@ package com.pixelo.pixeloCreaciones.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime; // Necesario para la expiración
 
-// Cambiamos la importación conflictiva por la moderna
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
@@ -35,16 +36,22 @@ public class Usuario {
     private String correoElectronico;
 
     @Column(nullable = false)
-    private String rol; // Valores: "ADMIN" o "CLIENTE"
+    private String rol; 
 
-    // 1. Relación 1:1 con Cartera de Puntos (Corregido con JsonIgnoreProperties)
+    // --- NUEVOS CAMPOS PARA RECUPERACIÓN ---
+    @Column(name = "codigo_recuperacion")
+    private String codigoRecuperacion;
+
+    @Column(name = "expiracion_codigo")
+    private LocalDateTime expiracionCodigo;
+    // ----------------------------------------
+
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("usuario")
     private CarteraPuntos carteraPuntos;
 
-    // 2. Relación 1:N con Pedidos (Corregido con JsonIgnoreProperties)
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("usuario")
+    @JsonIgnore 
     private List<Pedido> pedidos = new ArrayList<>();
 
     public Usuario() {}
@@ -65,6 +72,14 @@ public class Usuario {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    // --- Getters y Setters para recuperación ---
+    public String getCodigoRecuperacion() { return codigoRecuperacion; }
+    public void setCodigoRecuperacion(String codigoRecuperacion) { this.codigoRecuperacion = codigoRecuperacion; }
+
+    public LocalDateTime getExpiracionCodigo() { return expiracionCodigo; }
+    public void setExpiracionCodigo(LocalDateTime expiracionCodigo) { this.expiracionCodigo = expiracionCodigo; }
+    // -------------------------------------------
 
     public CarteraPuntos getCarteraPuntos() { return carteraPuntos; }
     public void setCarteraPuntos(CarteraPuntos carteraPuntos) { this.carteraPuntos = carteraPuntos; }

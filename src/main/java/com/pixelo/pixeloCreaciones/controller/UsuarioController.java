@@ -29,16 +29,19 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    // Retorna la lista completa de usuarios registrados en el sistema.
     @GetMapping
     public List<Usuario> listarUsuarios() {
         return usuarioService.listarUsuarios();
     }
 
+    // Retorna la información de un usuario específico según el ID proporcionado en la URL.
     @GetMapping("/{id}")
     public Optional<Usuario> obtenerUsuario(@PathVariable Long id) {
         return usuarioService.obtenerPorId(id);
     }
 
+    // Crea un nuevo usuario recibiendo un JSON crudo y transformándolo mediante ObjectMapper para prevenir errores de formato.
     @PostMapping(consumes = "application/json")
     public Usuario crearUsuario(@RequestBody String jsonCrudo) {
         try {
@@ -50,13 +53,14 @@ public class UsuarioController {
         }
     }
 
+    // Valida las credenciales de acceso invirtiendo la verificación .equals() para evitar colapsos por datos nulos en la base de datos.
     @PostMapping("/login")
     public ResponseEntity<?> loginUsuario(@RequestBody Map<String, String> credenciales) {
         String correo = credenciales.get("correoElectronico");
         String contrasena = credenciales.get("contrasena");
         
         Optional<Usuario> usuarioValidado = usuarioService.listarUsuarios().stream()
-            .filter(u -> u.getCorreoElectronico().equals(correo) && u.getContrasena().equals(contrasena))
+            .filter(u -> correo.equals(u.getCorreoElectronico()) && contrasena.equals(u.getContrasena()))
             .findFirst();
             
         if (usuarioValidado.isPresent()) {
@@ -66,6 +70,62 @@ public class UsuarioController {
         }
     }
 
+    // --- FUNCIONES DE RECUPERACIÓN ---
+
+    // Inicia el flujo de recuperación enviando un código temporal al correo indicado.
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<?> solicitarRecuperacion(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        try {
+            usuarioService.iniciarRecuperacion(email);
+            return ResponseEntity.ok(Map.of("mensaje", "Si el correo existe, se ha enviado un código."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    // NUEVO: Evalúa la autenticidad del código ingresado enviando una contraseña nula intencionalmente, buscando el error específico para dar el pase a la interfaz.
+    @PostMapping("/validar-codigo")
+    public ResponseEntity<?> validarCodigo(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String codigo = payload.get("codigo");
+
+        try {
+            String resultado = usuarioService.validarYCambiarPassword(email, codigo, null);
+            
+            if ("ERROR_PASSWORD_VACIA".equals(resultado)) {
+                return ResponseEntity.ok(Map.of("valido", true));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultado);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    // Procesa el cambio final de contraseña comparando el resultado de texto del servicio para asegurar una actualización limpia.
+    @PostMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String codigo = payload.get("codigo");
+        String nuevaPassword = payload.get("nuevaPassword");
+
+        try {
+            String resultado = usuarioService.validarYCambiarPassword(email, codigo, nuevaPassword);
+            
+            if ("OK".equals(resultado)) {
+                return ResponseEntity.ok(Map.of("mensaje", "Contraseña actualizada con éxito."));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultado);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    // ------------------------------------------
+
+    // Reemplaza los datos del usuario especificado con la nueva información proporcionada.
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario detalles) {
         try {
@@ -76,6 +136,7 @@ public class UsuarioController {
         }
     }
 
+    // Elimina de forma permanente el registro del usuario indicado.
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarUsuario(@PathVariable Long id) {
         try {

@@ -1,60 +1,69 @@
-if (sessionStorage.getItem('usuario')) {
-    window.location.href = 'index.html';
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Redirección si ya está autenticado
+    if (sessionStorage.getItem('usuario')) {
+        window.location.href = 'index.html';
+    }
 
-document.getElementById('formulario-registro').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    const formulario = document.getElementById('formulario-registro');
 
-    const nombreUsuario = document.getElementById('nombreUsuario').value.trim();
-    const correoElectronico = document.getElementById('correoUsuario').value.trim();
-    const contrasena = document.getElementById('contrasenaUsuario').value;
-    const confirmarContrasena = document.getElementById('confirmarContrasena').value;
-
-    const formatoCorreoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formatoCorreoRegex.test(correoElectronico)) {
-        alert('Error: Por favor, ingresa un correo electrónico válido (ejemplo: usuario@correo.com).');
+    if (!formulario) {
+        console.error("El elemento 'formulario-registro' no existe en el DOM.");
         return;
     }
 
-    if (contrasena !== confirmarContrasena) {
-        alert('Error: Las contraseñas ingresadas no coinciden. Por favor, verifica de nuevo.');
-        return;
-    }
+    formulario.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const datosUsuario = {
-        nombreUsuario: nombreUsuario,
-        correoElectronico: correoElectronico,
-        contrasena: contrasena,
-        rol: "CLIENTE" 
-    };
+        // Referencias a los campos
+        const inputNombre = document.getElementById('reg-nombre');
+        const inputCorreo = document.getElementById('reg-correo');
+        const inputPass = document.getElementById('reg-contrasena');
+        const inputConfirm = document.getElementById('reg-confirmar-contrasena');
 
-    try {
-        const response = await apiRegistrarUsuario(datosUsuario);
-
-        if (response.ok) {
-            alert('¡Usuario registrado con éxito en Pixelo Creaciones!');
-            document.getElementById('formulario-registro').reset();
-        } else {
-            const errorCrudo = await response.text(); 
-            const errorMinusculas = errorCrudo.toLowerCase(); 
-
-            if (errorMinusculas.includes("duplicate") || errorMinusculas.includes("constraint")) {
-                
-                if (errorMinusculas.includes(correoElectronico.toLowerCase()) || errorMinusculas.includes("correo")) {
-                    alert(`Error: El correo electrónico "${correoElectronico}" ya se encuentra registrado. Intenta iniciar sesión.`);
-                } 
-                else if (errorMinusculas.includes(nombreUsuario.toLowerCase()) || errorMinusculas.includes("nombreusuario") || errorMinusculas.includes("nombre_usuario")) {
-                    alert(`Error: El nombre de usuario "${nombreUsuario}" ya está en uso. Por favor, elige otro.`);
-                } 
-                else {
-                    alert('Error: El nombre de usuario o el correo electrónico ya existen en nuestra base de datos.');
-                }
-            } else {
-                alert('Hubo un problema desconocido al crear el usuario. Detalles: ' + errorCrudo);
-            }
+        // Verificación de existencia para evitar errores de null
+        if (!inputNombre || !inputCorreo || !inputPass || !inputConfirm) {
+            alert("Error interno: No se encontraron todos los campos del formulario.");
+            return;
         }
-    } catch (error) {
-        console.error('Error de conexión:', error);
-        alert('🔌 No se pudo conectar con el servidor. Verifica que Spring Boot y XAMPP estén encendidos.');
-    }
+
+        const nombreUsuario = inputNombre.value.trim();
+        const correoElectronico = inputCorreo.value.trim();
+        const contrasena = inputPass.value;
+        const confirmarContrasena = inputConfirm.value;
+
+        // Validación: las contraseñas deben coincidir
+        if (contrasena !== confirmarContrasena) {
+            alert('Error: Las contraseñas ingresadas no coinciden.');
+            return;
+        }
+
+        const formatoCorreoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formatoCorreoRegex.test(correoElectronico)) {
+            alert('Error: Por favor, ingresa un correo electrónico válido.');
+            return;
+        }
+
+        const datosUsuario = {
+            nombreUsuario: nombreUsuario,
+            correoElectronico: correoElectronico,
+            contrasena: contrasena,
+            rol: "CLIENTE" 
+        };
+
+        try {
+            const response = await apiRegistrarUsuario(datosUsuario);
+
+            if (response.ok) {
+                alert('¡Usuario registrado con éxito en Pixelo Creaciones!');
+                formulario.reset();
+                window.location.href = 'login.html';
+            } else {
+                const errorCrudo = await response.text(); 
+                alert('Error al registrar: ' + errorCrudo);
+            }
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            alert('🔌 No se pudo conectar con el servidor.');
+        }
+    });
 });

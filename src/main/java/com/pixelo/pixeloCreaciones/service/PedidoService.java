@@ -2,102 +2,84 @@ package com.pixelo.pixeloCreaciones.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.pixelo.pixeloCreaciones.dto.ItemCarroDTO;
 import com.pixelo.pixeloCreaciones.dto.PedidoRequestDTO;
-import com.pixelo.pixeloCreaciones.model.CarteraPuntos;
-import com.pixelo.pixeloCreaciones.model.DetallePedido;
-import com.pixelo.pixeloCreaciones.model.Pedido;
-import com.pixelo.pixeloCreaciones.model.Producto;
-import com.pixelo.pixeloCreaciones.model.Usuario;
-import com.pixelo.pixeloCreaciones.repository.PedidoRepository;
-import com.pixelo.pixeloCreaciones.repository.ProductoRepository;
-import com.pixelo.pixeloCreaciones.repository.UsuarioRepository;
+import com.pixelo.pixeloCreaciones.model.*;
+import com.pixelo.pixeloCreaciones.repository.*;
 
 @Service
-@SuppressWarnings("null")
 public class PedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
+    private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProductoRepository productoRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    public List<Pedido> listarTodos() {
-        return pedidoRepository.findAll();
+    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository) {
+        this.pedidoRepository = pedidoRepository;
+        this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
-    public Pedido guardarPedido(Pedido pedido) {
-        return pedidoRepository.save(pedido);
-    }
-
-    public void eliminarPedido(Long id) {
-        pedidoRepository.deleteById(id);
-    }
-
-    @Transactional
-    public Pedido registrarPedido(PedidoRequestDTO dto) {
+    public Pedido registrarPedido(PedidoRequestDTO dto, String buyOrder) {
         Pedido pedido = new Pedido();
+        pedido.setBuyOrder(buyOrder); // Asignamos el código aquí
+        pedido.setEstado("PENDIENTE");
 
         if (dto.getUsuarioId() != null) {
             Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + dto.getUsuarioId()));
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             pedido.setUsuario(usuario);
         } else {
             pedido.setCorreoInvitado(dto.getCorreoInvitado());
         }
 
-        Double totalAcumulado = 0.0;
+        int totalAcumulado = 0;
         List<DetallePedido> detalles = new ArrayList<>();
 
         for (ItemCarroDTO itemDto : dto.getItems()) {
             Producto producto = productoRepository.findById(itemDto.getId())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + itemDto.getId()));
-
-            if (producto.getStock() < itemDto.getCantidad()) {
-                throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre());
-            }
-
-            producto.setStock(producto.getStock() - itemDto.getCantidad());
-            productoRepository.save(producto);
-
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            
+            // Lógica de stock y creación de detalles...
             DetallePedido detalle = new DetallePedido();
             detalle.setPedido(pedido);
             detalle.setProducto(producto);
             detalle.setCantidad(itemDto.getCantidad());
             detalle.setPrecioUnitario(producto.getPrecio());
-
+            
             detalles.add(detalle);
             totalAcumulado += (producto.getPrecio() * itemDto.getCantidad());
         }
 
         pedido.setTotal(totalAcumulado);
         pedido.setDetalles(detalles);
-
-        if (pedido.getUsuario() != null) {
-            int puntosGanados = (int) (totalAcumulado * 0.10);
-            Usuario usuario = pedido.getUsuario();
-            if (usuario.getCarteraPuntos() != null) {
-                CarteraPuntos cartera = usuario.getCarteraPuntos();
-                cartera.setPuntosAcumulados(cartera.getPuntosAcumulados() + puntosGanados);
-            } else {
-                CarteraPuntos nuevaCartera = new CarteraPuntos();
-                nuevaCartera.setPuntosAcumulados(puntosGanados);
-                nuevaCartera.setUsuario(usuario);
-                usuario.setCarteraPuntos(nuevaCartera);
+        return pedidoRepository.save(pedido); // Se guarda en BD ANTES del pago
+    }
+    
+    @Transactional
+    public Pedido confirmarPagoYDescontarStock(String buyOrder) {
+        // Buscamos el pedido por su código de Transbank
+        Pedido pedido = pedidoRepository.findByBuyOrder(buyOrder);
+        
+        // Verificamos que exista y que NO esté pagado ya (para evitar descontar el stock dos veces)
+        if (pedido != null && !"PAGADO".equals(pedido.getEstado())) {
+            pedido.setEstado("PAGADO");
+            
+            // Gracias a @Transactional, podemos recorrer los detalles sin que la BD nos desconecte
+            for (DetallePedido detalle : pedido.getDetalles()) {
+                Producto producto = detalle.getProducto();
+                int nuevoStock = producto.getStock() - detalle.getCantidad();
+                
+                // Aseguramos que el inventario jamás quede en negativo
+                producto.setStock(Math.max(0, nuevoStock));
+                productoRepository.save(producto);
             }
-            usuarioRepository.save(usuario);
+            
+            return pedidoRepository.save(pedido);
         }
-
-        return pedidoRepository.save(pedido);
+        return pedido;
     }
 }

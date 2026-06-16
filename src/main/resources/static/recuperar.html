@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelo - Recuperar Contraseña</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card p-4 shadow-sm mx-auto" style="max-width: 450px;">
+        <h2 class="mb-4 text-center fw-bold">Recuperar Contraseña</h2>
+        
+        <div id="paso-1">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Correo Electrónico:</label>
+                <input type="email" class="form-control" id="emailRecuperacion" placeholder="ejemplo@pixelo.com">
+            </div>
+            <button class="btn btn-primary w-100" onclick="paso1()">Aceptar</button>
+        </div>
+
+        <div id="paso-2" class="d-none">
+            <p class="small text-muted text-center" id="mensaje-info"></p>
+            <div class="mb-3">
+                <input type="text" class="form-control text-center" id="codigoIngresado" placeholder="Código de 6 dígitos">
+                <div id="error-codigo" class="text-danger small mt-1 text-center d-none">Código incorrecto o expirado.</div>
+            </div>
+            <button class="btn btn-primary w-100 mb-2" onclick="paso2()">Ingresar Código</button>
+        </div>
+
+        <div id="paso-3" class="d-none">
+            <div class="mb-3">
+                <input type="password" class="form-control" id="nuevaPass" placeholder="Nueva Contraseña">
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="repetirPass" placeholder="Repetir Contraseña">
+            </div>
+            <button class="btn btn-success w-100" onclick="paso3()">Actualizar Contraseña</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js?v=99"></script>
+<script>
+    let emailGlobal = "";
+
+    async function paso1() {
+        console.log("DEBUG: Ejecutando paso 1");
+        emailGlobal = document.getElementById('emailRecuperacion').value.trim();
+        await apiSolicitarRecuperacion(emailGlobal);
+        
+        document.getElementById('paso-1').classList.add('d-none');
+        document.getElementById('paso-2').classList.remove('d-none');
+        document.getElementById('mensaje-info').innerText = "Enviamos código a " + emailGlobal;
+    }
+
+    async function paso2() {
+        console.log("DEBUG: Ejecutando paso 2 - Validando código");
+        const codigo = document.getElementById('codigoIngresado').value.trim();
+        
+        // Esta función debe llamar a /api/usuarios/validar-codigo
+        const response = await apiValidarCodigo(emailGlobal, codigo);
+        
+        if (response.ok) {
+            console.log("DEBUG: Código válido. Pasando al paso 3.");
+            document.getElementById('paso-2').classList.add('d-none');
+            document.getElementById('paso-3').classList.remove('d-none');
+        } else {
+            console.error("DEBUG: Error en validación de código");
+            document.getElementById('error-codigo').classList.remove('d-none');
+        }
+    }
+
+    async function paso3() {
+        console.log("DEBUG: Ejecutando paso 3 - Cambiando contraseña");
+        const pass1 = document.getElementById('nuevaPass').value.trim();
+        const pass2 = document.getElementById('repetirPass').value.trim();
+
+        if (pass1 === "" || pass1 !== pass2) {
+            alert("Las contraseñas no coinciden o están vacías");
+            return;
+        }
+
+        const codigo = document.getElementById('codigoIngresado').value.trim();
+        const response = await apiCambiarPassword(emailGlobal, codigo, pass1);
+        
+        if (response.ok) {
+            alert("Contraseña actualizada con éxito");
+            window.location.href = 'login.html';
+        } else {
+            const errorTxt = await response.text();
+            alert("Error: " + errorTxt);
+        }
+    }
+</script>
+</body>
+</html>
