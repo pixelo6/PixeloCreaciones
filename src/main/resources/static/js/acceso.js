@@ -18,7 +18,12 @@ document.getElementById('formulario-login').addEventListener('submit', async (e)
 
         if (response.ok) {
             const usuarioLogueado = await response.json();
+            
             sessionStorage.setItem('usuario', JSON.stringify(usuarioLogueado));
+            
+            if (usuarioLogueado.id) {
+                localStorage.setItem('usuarioId', usuarioLogueado.id);
+            }
             
             const rolNormalizado = usuarioLogueado.rol ? usuarioLogueado.rol.trim().toUpperCase() : '';
 
