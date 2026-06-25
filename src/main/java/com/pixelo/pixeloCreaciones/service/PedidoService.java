@@ -24,6 +24,7 @@ public class PedidoService {
 
     @Transactional
     public Pedido registrarPedido(PedidoRequestDTO dto, String buyOrder) {
+        System.out.println("DEBUG: El ID de usuario que recibí es: " + dto.getUsuarioId());
         Pedido pedido = new Pedido();
         pedido.setBuyOrder(buyOrder); // Asignamos el código aquí
         pedido.setEstado("PENDIENTE");
