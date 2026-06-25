@@ -64,11 +64,10 @@ public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> requ
             sessionId = "SES-" + System.currentTimeMillis();
         }
         
-        // SOLUCIÓN DINÁMICA: Si no se provee una URL de retorno, se construye en caliente utilizando la petición actual
         if (returnUrl == null || returnUrl.trim().isEmpty()) {
-            String esquema = servletRequest.getScheme();       // Detectará automáticamente "http" en local o "https" en Render
-            String servidor = servletRequest.getServerName();   // Detectará "localhost" en local o "tu-app.onrender.com" en Render
-            int puerto = servletRequest.getServerPort();        // Obtiene el puerto activo (ej: 8080)
+            String esquema = servletRequest.getScheme();      
+            String servidor = servletRequest.getServerName();  
+            int puerto = servletRequest.getServerPort();      
 
             // Si corre en puertos web estándar (80 para http o 443 para https) se omite el número en la cadena de texto
             if (puerto == 80 || puerto == 443) {
