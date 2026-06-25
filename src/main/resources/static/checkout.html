@@ -21,7 +21,8 @@
                         </div>
                         <div class="mb-3" id="contenedor-correo-invitado">
                             <label for="checkout-correo" class="form-label small fw-bold text-danger">Correo de Invitado (Obligatorio):</label>
-                            <input type="email" class="form-control border-danger mb-2" id="checkout-correo" placeholder="juan@correo.com" required>
+                            <!-- CORRECCIÓN: Se eliminó la palabra 'required' al final de esta etiqueta -->
+                            <input type="email" class="form-control border-danger mb-2" id="checkout-correo" placeholder="juan@correo.com">
                             <div class="p-2 bg-light border border-secondary border-opacity-25 rounded d-flex align-items-center justify-content-between">
                                 <span class="small text-muted">¿Ya tienes una cuenta Pixelo?</span>
                                 <div><a href="login.html" class="btn btn-sm btn-outline-primary fw-bold">Iniciar sesión</a></div>
@@ -62,6 +63,7 @@
                         <span class="fw-bold text-primary fs-3" id="checkout-total-monto">$0</span>
                     </div>
 
+                    <!-- El botón ahora delegará la validación al script de abajo -->
                     <button type="button" class="btn btn-success w-100 py-2 fw-bold fs-5 shadow-sm" id="btn-confirmar-despacho-pago">
                         💳 Proceder al Pago Seguro
                     </button>
@@ -80,17 +82,22 @@
         document.getElementById('btn-confirmar-despacho-pago').addEventListener('click', () => {
             const totalTexto = document.getElementById('checkout-total-monto').innerText;
             const montoLimpio = totalTexto.replace(/[^0-9]/g, '');
-            
-            // CORRECCIÓN: Capturamos el valor real del input del correo
             const emailInput = document.getElementById('checkout-correo').value;
             
-            if (!emailInput || !emailInput.includes('@')) {
-                alert("Por favor, ingresa un correo electrónico válido.");
-                return;
+            // Verificamos si existe un ID de usuario guardado en el navegador por la sesión
+            const usuarioRegistradoId = localStorage.getItem('usuarioId');
+            
+            // Si no hay un ID registrado, entonces validamos estrictamente el campo de correo
+            if (!usuarioRegistradoId) {
+                if (!emailInput || !emailInput.includes('@')) {
+                    alert("Por favor, ingresa un correo electrónico válido para continuar como invitado.");
+                    return;
+                }
             }
             
             if (montoLimpio && parseInt(montoLimpio) > 0) {
-                console.log("Enviando correo:", emailInput);
+                console.log("Iniciando proceso de pago...");
+                // Ejecutamos la función de la API enviando el monto y el correo ingresado
                 procesarPagoTransbank(montoLimpio, emailInput);
             } else {
                 alert("El monto de la compra no es válido.");

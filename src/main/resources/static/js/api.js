@@ -44,6 +44,19 @@ async function procesarPagoTransbank(montoReal, emailInvitado) {
         cantidad: parseInt(item.cantidad)
     }));
 
+    // Se estructura el paquete base cambiando 'correoInvitado' por 'correoElectronico'
+    const payload = {
+        amount: montoReal,
+        items: itemsParaBackend,
+        correoElectronico: emailInvitado || ""
+    };
+
+    // Se rescata el ID de la sesión y se inyecta al paquete si el usuario está registrado
+    const usuarioRegistradoId = localStorage.getItem('usuarioId');
+    if (usuarioRegistradoId) {
+        payload.usuarioId = parseInt(usuarioRegistradoId);
+    }
+
     const urlApiTransbank = "/api/v1/transbank/transaction/create";
 
     try {
@@ -53,11 +66,8 @@ async function procesarPagoTransbank(montoReal, emailInvitado) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                amount: montoReal,
-                items: itemsParaBackend,
-                correoInvitado: emailInvitado || ""
-            })
+            // Se envía el paquete dinámico en lugar del objeto estático anterior
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
