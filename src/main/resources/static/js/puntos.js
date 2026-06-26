@@ -13,12 +13,13 @@ async function cargarDatosCarteraPuntos() {
         const user = await response.json();
         
         let puntosActuales = 0;
-        if (user.carteraPuntos && user.carteraPuntos.puntosAcumulados) {
-            puntosActuales = user.carteraPuntos.puntosAcumulados;
-        }
+        if (response.ok) {
+        const cartera = await response.json();
+        puntosActuales = cartera.puntosAcumulados;
+    }
 
         if (totalDisplay) totalDisplay.textContent = puntosActuales.toLocaleString('es-CL');
-        if (equivDisplay) equivDisplay.textContent = `$${puntosActuales.toLocaleString('es-CL')}`;
+    if (equivDisplay) equivDisplay.textContent = `$${puntosActuales.toLocaleString('es-CL')}`;
 
         if (!tbody) return;
         tbody.innerHTML = '';

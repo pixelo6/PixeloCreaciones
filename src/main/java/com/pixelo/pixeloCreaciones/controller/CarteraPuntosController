@@ -1,0 +1,27 @@
+package com.pixelo.pixeloCreaciones.controller;
+
+import com.pixelo.pixeloCreaciones.model.CarteraPuntos;
+import com.pixelo.pixeloCreaciones.repository.CarteraPuntosRepository;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
+@RestController
+@RequestMapping("/api/cartera")
+@CrossOrigin(origins = "*")
+public class CarteraPuntosController {
+
+    private final CarteraPuntosRepository carteraPuntosRepository;
+
+    public CarteraPuntosController(CarteraPuntosRepository carteraPuntosRepository) {
+        this.carteraPuntosRepository = carteraPuntosRepository;
+    }
+
+    @GetMapping("/{usuarioId}")
+    public ResponseEntity<CarteraPuntos> obtenerCartera(@PathVariable Long usuarioId) {
+        CarteraPuntos cartera = carteraPuntosRepository.findByUsuarioId(usuarioId);
+        if (cartera == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(cartera);
+    }
+}
