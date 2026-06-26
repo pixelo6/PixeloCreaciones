@@ -22,13 +22,11 @@ public class EmailService {
             return;
         }
 
-        String destinatario = (pedido.getUsuario() != null) 
-                            ? pedido.getUsuario().getCorreoElectronico() 
-                            : pedido.getCorreoInvitado();
+        String destinatario = pedido.getCorreoInvitado();
 
         if (destinatario == null || destinatario.trim().isEmpty()) {
-        System.out.println("Correo no disponible. Se omite el envío para proteger la transacción.");
-        return; 
+        System.out.println("Correo no disponible. Se cancela el envío de email para evitar caída del servidor.");
+        return;
     }
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
