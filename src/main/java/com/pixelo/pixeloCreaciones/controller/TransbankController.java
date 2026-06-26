@@ -39,6 +39,9 @@ public class TransbankController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> request, HttpServletRequest servletRequest) {
+        
+        System.out.println("DEBUG RAW REQUEST DESDE NAVEGADOR: " + request);
+        
         String url = "https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions";
         
         HttpHeaders headers = new HttpHeaders();
