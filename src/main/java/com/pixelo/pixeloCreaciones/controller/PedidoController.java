@@ -86,13 +86,18 @@ public class PedidoController {
 
         if (pedidoGuardado.getUsuario() != null) {
             CarteraPuntos cartera = carteraPuntosRepository.findByUsuarioId(pedidoGuardado.getUsuario().getId());
-            if (cartera != null) {
+            
+            if (cartera == null) {
+                System.out.println("DEBUG: El usuario no tiene cartera registrada. ID: " + pedidoGuardado.getUsuario().getId());
+            } else {
+                System.out.println("DEBUG: Cartera encontrada, sumando puntos...");
                 int puntosGanados = totalAcumulado / 100;
                 cartera.setPuntosAcumulados(cartera.getPuntosAcumulados() + puntosGanados);
-                carteraPuntosRepository.save(cartera);
+                carteraPuntosRepository.saveAndFlush(cartera);
+                System.out.println("DEBUG: Puntos guardados exitosamente.");
             }
         }
         
-        return pedidoGuardado; 
+        return pedidoGuardado;
     }
 }
