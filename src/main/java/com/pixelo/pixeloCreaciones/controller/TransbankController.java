@@ -25,7 +25,7 @@ public class TransbankController {
     private final PedidoRepository pedidoRepository;
     private final EmailService emailService;
     private final ProductoRepository productoRepository;
-    private final PedidoService pedidoService; // variable añadida
+    private final PedidoService pedidoService;
 
     public TransbankController(PedidoRepository pedidoRepository, 
                                EmailService emailService, 
@@ -38,69 +38,63 @@ public class TransbankController {
     }
 
     @PostMapping("/create")
-public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> request, HttpServletRequest servletRequest) {
-    // URL del ambiente de integración de Webpay Transbank
-    String url = "https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions";
-    
-    // Configuración de las cabeceras HTTP obligatorias con las llaves del comercio de prueba
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Tbk-Api-Key-Id", "597055555532");
-    headers.set("Tbk-Api-Key-Secret", "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C");
-    headers.setContentType(MediaType.APPLICATION_JSON);
-
-    try {
-        // Extracción de parámetros desde el cuerpo de la petición, soportando camelCase y snake_case
-        String buyOrder = request.containsKey("buy_order") ? (String) request.get("buy_order") : (String) request.get("buyOrder");
-        String sessionId = request.containsKey("session_id") ? (String) request.get("session_id") : (String) request.get("sessionId");
-        String returnUrl = request.containsKey("return_url") ? (String) request.get("return_url") : (String) request.get("returnUrl");
-        Object amount = request.containsKey("amount") ? request.get("amount") : request.get("amount");
-
-        // Generación de orden de compra interna si el cliente no envía una predefinida
-        if (buyOrder == null || buyOrder.trim().isEmpty()) {
-            buyOrder = "PIX-" + System.currentTimeMillis();
-        }
-        // Generación de ID de sesión único basado en tiempo Unix
-        if (sessionId == null || sessionId.trim().isEmpty()) {
-            sessionId = "SES-" + System.currentTimeMillis();
-        }
+    public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> request, HttpServletRequest servletRequest) {
+        String url = "https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions";
         
-        if (returnUrl == null || returnUrl.trim().isEmpty()) {
-            String esquema = servletRequest.getScheme();      
-            String servidor = servletRequest.getServerName();  
-            int puerto = servletRequest.getServerPort();      
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Tbk-Api-Key-Id", "597055555532");
+        headers.set("Tbk-Api-Key-Secret", "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C");
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Si corre en puertos web estándar (80 para http o 443 para https) se omite el número en la cadena de texto
-            if (puerto == 80 || puerto == 443) {
-                returnUrl = esquema + "://" + servidor + "/api/v1/transbank/transaction/commit";
-            } else {
-                returnUrl = esquema + "://" + servidor + ":" + puerto + "/api/v1/transbank/transaction/commit";
+        try {
+            String buyOrder = request.containsKey("buy_order") ? (String) request.get("buy_order") : (String) request.get("buyOrder");
+            String sessionId = request.containsKey("session_id") ? (String) request.get("session_id") : (String) request.get("sessionId");
+            String returnUrl = request.containsKey("return_url") ? (String) request.get("return_url") : (String) request.get("returnUrl");
+            Object amount = request.get("amount");
+
+            if (buyOrder == null || buyOrder.trim().isEmpty()) {
+                buyOrder = "PIX-" + System.currentTimeMillis();
             }
+            if (sessionId == null || sessionId.trim().isEmpty()) {
+                sessionId = "SES-" + System.currentTimeMillis();
+            }
+            
+            if (returnUrl == null || returnUrl.trim().isEmpty()) {
+                String esquema = servletRequest.getScheme();      
+                String servidor = servletRequest.getServerName();  
+                int puerto = servletRequest.getServerPort();      
+
+                if (puerto == 80 || puerto == 443) {
+                    returnUrl = esquema + "://" + servidor + "/api/v1/transbank/transaction/commit";
+                } else {
+                    returnUrl = esquema + "://" + servidor + ":" + puerto + "/api/v1/transbank/transaction/commit";
+                }
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            PedidoRequestDTO dto = mapper.convertValue(request, PedidoRequestDTO.class);
+            
+            pedidoService.registrarPedido(dto, buyOrder);
+
+            Map<String, Object> transbankRequest = new HashMap<>();
+            transbankRequest.put("buy_order", buyOrder);
+            transbankRequest.put("session_id", sessionId);
+            transbankRequest.put("amount", amount);
+            transbankRequest.put("return_url", returnUrl);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(transbankRequest, headers);
+            ResponseEntity<Map> resp = new RestTemplate().postForEntity(url, entity, Map.class);
+            
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Error interno al iniciar el pago: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
         }
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PedidoRequestDTO dto = mapper.convertValue(request, PedidoRequestDTO.class);
-        
-        pedidoService.registrarPedido(dto, buyOrder);
-
-        Map<String, Object> transbankRequest = new HashMap<>();
-        transbankRequest.put("buy_order", buyOrder);
-        transbankRequest.put("session_id", sessionId);
-        transbankRequest.put("amount", amount);
-        transbankRequest.put("return_url", returnUrl);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(transbankRequest, headers);
-        ResponseEntity<Map> resp = new RestTemplate().postForEntity(url, entity, Map.class);
-        
-        return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        Map<String, String> err = new HashMap<>();
-        err.put("error", "Error interno al iniciar el pago: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
-}
 
     @GetMapping("/commit")
     public ResponseEntity<?> confirmarTransaccion(@RequestParam("token_ws") String token) {
@@ -112,11 +106,9 @@ public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> requ
         headers.setContentType(MediaType.APPLICATION_JSON);
         
         try {
-            // CORRECCIÓN: Transbank exige PUT para capturar el dinero de la tarjeta
             ResponseEntity<Map> resp = new RestTemplate().exchange(url, HttpMethod.PUT, new HttpEntity<>(headers), Map.class);
             Map<String, Object> body = resp.getBody();
             
-            // Verificamos si Transbank aprueba la transacción comercial ("AUTHORIZED")
             if (body != null && body.containsKey("buy_order") && "AUTHORIZED".equals(body.get("status"))) {
                 String buyOrder = (String) body.get("buy_order");
                 
@@ -129,7 +121,6 @@ public ResponseEntity<?> createTransaction(@RequestBody Map<String, Object> requ
                         System.out.println("No se pudo enviar el correo, pero el pago y stock se procesaron.");
                         mailEx.printStackTrace();
                     }
-                    
                     
                     return ResponseEntity.status(HttpStatus.FOUND).header("Location", "/resultado-pago.html?pago=exito").build();
                 }
