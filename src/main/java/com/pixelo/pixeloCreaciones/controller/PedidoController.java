@@ -5,6 +5,7 @@ import com.pixelo.pixeloCreaciones.repository.*;
 import com.pixelo.pixeloCreaciones.dto.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,18 +17,29 @@ public class PedidoController {
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CarteraPuntosRepository carteraPuntosRepository;
 
+    @Autowired
     public PedidoController(PedidoRepository pedidoRepository, 
                             ProductoRepository productoRepository, 
-                            UsuarioRepository usuarioRepository) {
+                            UsuarioRepository usuarioRepository,
+                            CarteraPuntosRepository carteraPuntosRepository) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.carteraPuntosRepository = carteraPuntosRepository;
     }
 
+    // Historial Global
     @GetMapping
     public List<Pedido> listarPedidos() {
         return pedidoRepository.findAll();
+    }
+
+    // Historial por Usuario (La nueva función que faltaba)
+    @GetMapping("/usuario/{usuarioId}")
+    public List<Pedido> listarPedidosPorUsuario(@PathVariable Long usuarioId) {
+        return pedidoRepository.findByUsuarioId(usuarioId);
     }
 
     @PostMapping
@@ -70,7 +82,17 @@ public class PedidoController {
 
         pedido.setTotal(totalAcumulado);
         pedido.setDetalles(detalles);
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+
+        if (pedidoGuardado.getUsuario() != null) {
+            CarteraPuntos cartera = carteraPuntosRepository.findByUsuarioId(pedidoGuardado.getUsuario().getId());
+            if (cartera != null) {
+                int puntosGanados = totalAcumulado / 100;
+                cartera.setPuntosAcumulados(cartera.getPuntosAcumulados() + puntosGanados);
+                carteraPuntosRepository.save(cartera);
+            }
+        }
         
-        return pedidoRepository.save(pedido); 
+        return pedidoGuardado; 
     }
 }
