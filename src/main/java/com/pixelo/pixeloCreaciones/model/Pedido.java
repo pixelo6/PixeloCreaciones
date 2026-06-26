@@ -1,8 +1,6 @@
 package com.pixelo.pixeloCreaciones.model;
 
-
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,14 +31,13 @@ public class Pedido {
     @Column(name = "correo_invitado")
     private String correoInvitado;
 
-
-  @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id")
     @JsonIgnoreProperties({"pedidos", "carteraPuntos", "hibernateLazyInitializer", "handler"}) 
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("pedido")
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"pedido", "hibernateLazyInitializer", "handler"})
     private List<DetallePedido> detalles = new ArrayList<>();
 
     @PrePersist
@@ -49,8 +46,7 @@ public class Pedido {
         if (estado == null) estado = "PENDIENTE";
     }
 
-    // --- Getters y Setters ---
-
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
