@@ -25,35 +25,31 @@ public class PedidoService {
     @Transactional
     public Pedido registrarPedido(PedidoRequestDTO dto, String buyOrder) {
         System.out.println("DEBUG: El ID de usuario que recibí es: " + dto.getUsuarioId());
+        
         Pedido pedido = new Pedido();
         pedido.setBuyOrder(buyOrder);
         pedido.setEstado("PENDIENTE");
 
-        // 1. ASIGNACIÓN DEL CORREO Y USUARIO
         if (dto.getUsuarioId() != null) {
             Usuario usuario = usuarioRepository.findById(dto.getUsuarioId()).orElse(null);
             pedido.setUsuario(usuario);
-            
-            // Copia el correo del usuario registrado en la venta
             if (usuario != null) {
                 pedido.setCorreoInvitado(usuario.getCorreoElectronico());
             }
         } else {
-            // Si es invitado, guarda el correo que digitó a mano
             pedido.setCorreoInvitado(dto.getCorreoInvitado());
         }
 
-        // 2. PROCESAMIENTO DE LOS PRODUCTOS DEL CARRO
         int totalAcumulado = 0;
         List<DetallePedido> detalles = new ArrayList<>();
 
         if (dto.getItems() != null) {
             for (ItemCarroDTO itemDto : dto.getItems()) {
                 Producto producto = productoRepository.findById(itemDto.getId())
-                        .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                        .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + itemDto.getId()));
                 
                 DetallePedido detalle = new DetallePedido();
-                detalle.setPedido(pedido);
+                detalle.setPedido(pedido); 
                 detalle.setProducto(producto);
                 detalle.setCantidad(itemDto.getCantidad());
                 detalle.setPrecioUnitario(producto.getPrecio());
@@ -66,7 +62,8 @@ public class PedidoService {
         pedido.setTotal(totalAcumulado);
         pedido.setDetalles(detalles);
         
-        // Guardamos todo el pedido con sus productos y su correo al final
+        System.out.println("DEBUG: Guardando pedido " + buyOrder + " con total: " + totalAcumulado + " y " + detalles.size() + " detalles.");
+        
         return pedidoRepository.save(pedido);
     }
 
@@ -75,20 +72,25 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findByBuyOrder(buyOrder);
         
         if (pedido != null && !"PAGADO".equals(pedido.getEstado())) {
+            
+            if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+            }
+
             pedido.setEstado("PAGADO");
+            
+            int totalReal = 0;
             
             for (DetallePedido detalle : pedido.getDetalles()) {
                 Producto producto = detalle.getProducto();
-                int nuevoStock = producto.getStock() - detalle.getCantidad();
                 
+                int nuevoStock = producto.getStock() - detalle.getCantidad();
                 producto.setStock(Math.max(0, nuevoStock));
                 productoRepository.save(producto);
+                
+                totalReal += (detalle.getPrecioUnitario() * detalle.getCantidad());
             }
             
-            // 3. SOLUCIÓN AL ERROR DEL CORREO: Despertar al usuario antes de cerrar
-            if (pedido.getUsuario() != null) {
-                pedido.getUsuario().getCorreoElectronico();
-            }
+            pedido.setTotal(totalReal);
             
             return pedidoRepository.save(pedido);
         }
