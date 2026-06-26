@@ -38,7 +38,7 @@ async function procesarPagoTransbank(montoReal, emailInvitado) {
         return;
     }
 
-    const carro = JSON.parse(localStorage.getItem('carro')) || [];
+    const carro = JSON.parse(localStorage.getItem('carro_pixelo')) || [];
     const itemsParaBackend = carro.map(item => ({
         id: parseInt(item.id),
         cantidad: parseInt(item.cantidad)

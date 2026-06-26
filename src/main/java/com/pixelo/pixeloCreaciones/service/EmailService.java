@@ -16,7 +16,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void enviarConfirmacion(Pedido pedido, String ultimos4Digitos) throws Exception {
+    public void enviarConfirmacion(Pedido pedido, String asunto) throws Exception {
         if (pedido == null) {
             System.err.println("DEBUG: Envío cancelado. El pedido es nulo.");
             return;
@@ -27,9 +27,9 @@ public class EmailService {
                             : pedido.getCorreoInvitado();
 
         if (destinatario == null || destinatario.trim().isEmpty()) {
-            System.err.println("DEBUG: Envío cancelado. El pedido ID " + pedido.getId() + " no tiene correo asociado.");
-            return;
-        }
+        System.out.println("Correo no disponible. Se omite el envío para proteger la transacción.");
+        return; 
+    }
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         String fechaFormateada = sdf.format(pedido.getFechaCreacion());
