@@ -1,6 +1,9 @@
 package com.pixelo.pixeloCreaciones.model;
 
+
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,14 +34,14 @@ public class Pedido {
     private String correoInvitado;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    @JsonIgnoreProperties({"pedidos", "carteraPuntos"}) 
+    @JsonIgnoreProperties({"pedidos", "carteraPuntos", "hibernateLazyInitializer", "handler"}) 
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("pedido")
-    private List<DetallePedido> detalles;
+    private List<DetallePedido> detalles = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

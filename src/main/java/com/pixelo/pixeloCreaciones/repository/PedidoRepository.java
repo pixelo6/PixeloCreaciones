@@ -12,5 +12,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     @EntityGraph(attributePaths = {"detalles", "detalles.producto"})
     Pedido findByBuyOrder(String buyOrder);
     
+    @EntityGraph(attributePaths = {"detalles", "detalles.producto"})
     List<Pedido> findByUsuarioId(Long usuarioId);
 }
